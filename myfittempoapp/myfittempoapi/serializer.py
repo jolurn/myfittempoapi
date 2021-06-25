@@ -14,7 +14,7 @@ class ClienteSerializer(serializers.Serializer):
 
   # id = serializers.IntegerField()
   primerNombre = serializers.CharField(max_length=50)
-  segundoNombre = serializers.CharField(max_length=50, required=False)
+  segundoNombre = serializers.CharField(max_length=50, required=False, allow_blank=True)
   apellidoPaterno = serializers.CharField(max_length=100)
   apellidoMaterno = serializers.CharField(max_length=100)
   dni = serializers.IntegerField()
