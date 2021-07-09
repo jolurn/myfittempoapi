@@ -15,11 +15,25 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from myfittempoapi.views import hello_world
-from myfittempoapi.viewsets import ClienteViewset
+from myfittempoapi.views import hello_world,login
+from myfittempoapi.viewsets import ClienteViewset, EmpleadoViewset, OfertaViewset,CarritoViewset,TokenizeViewset,MercadopagoViewset
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
+    path('login',login),
     path('admin/', admin.site.urls),
-    path('hello', hello_world),
-    path('clientes',ClienteViewset.as_view({'get':'listar','post':'create'}))
+    path('mercadopago', MercadopagoViewset.as_view({'post':'create'})),
+    path('clientes',ClienteViewset.as_view({'get':'listar','post':'create'})),
+    path('cliente/<id>',ClienteViewset.as_view({'get':'retrieve','put':'update'})),
+    path('empleados',EmpleadoViewset.as_view({'get':'listar','post':'create'})),
+    path('empleado/<id>',EmpleadoViewset.as_view({'get':'retrieve','put':'update'})),
+    path('oferta',OfertaViewset.as_view({'get':'listar','post':'create'})),
+    path('ofertas_empleado',OfertaViewset.as_view({'get':'listar_oferta_por_trabajador'})),
+    path('oferta/<id>',OfertaViewset.as_view({'get':'retrieve','put':'update'})),
+    path('carritos',CarritoViewset.as_view({'get':'listar','post':'create'})),
+    path('carrito/<id>',CarritoViewset.as_view({'get':'retrieve'})),
+    path('tokenize',TokenizeViewset.as_view({'post':'get_token'}))
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

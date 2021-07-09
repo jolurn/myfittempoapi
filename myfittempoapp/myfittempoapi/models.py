@@ -1,5 +1,7 @@
 from django.db import models
-from datetime import date
+from datetime import datetime
+from django.contrib.auth.models import User
+# from myfittempoapi.lib.db import ds
 
 Es1 = 'A'
 Es2 = 'I'
@@ -8,9 +10,11 @@ ESTADO_OFERTA = [
   (Es2, 'Inactivo')
   ]
 # Create your models here.
-class Cliente(models.Model):
 
-  # idCliente = models.AutoField(primary_key=True)
+
+
+class Cliente(models.Model):
+  
   primerNombre = models.CharField(max_length=50)
   segundoNombre = models.CharField(max_length=50, null=True, blank=True)
   apellidoPaterno = models.CharField(max_length=100)
@@ -20,9 +24,11 @@ class Cliente(models.Model):
   correo = models.CharField(max_length=100)
   password = models.CharField(max_length=100)
   direccion = models.CharField(max_length=100)
-  fechaRegistro = date.today()
+  estado = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
+  fechaRegistro = models.DateField(default=datetime.now())
   fechaModificado = models.DateField(null=True, blank=True)
   fechaElimnado = models.DateField(null=True, blank=True)
+  
 
   def nombre_completo(self):
     return "{} {}, {}".format(self.apellidoPaterno, self.apellidoMaterno, self.primerNombre)
@@ -33,7 +39,6 @@ class Cliente(models.Model):
 
 class Empleado(models.Model):
 
-  # idEmpleado = models.AutoField(primary_key=True)
   primerNombre = models.CharField(max_length=50)
   segundoNombre = models.CharField(max_length=50, null=True, blank=True)
   apellidoPaterno = models.CharField(max_length=100)
@@ -44,15 +49,18 @@ class Empleado(models.Model):
   password = models.CharField(max_length=100)
   direccion = models.CharField(max_length=100)
   distrito = models.CharField(max_length=100)
-  profesión = models.CharField(max_length=50)
+  profesion = models.CharField(max_length=50)
   descripcion = models.CharField(max_length=200)
-  fotoPerfil = models.CharField(max_length=100, null=True, blank=True)
-  fotoBanner = models.CharField(max_length=100, null=True, blank=True)
-  video = models.CharField(max_length=100, null=True, blank=True)
-  fechaRegistro = date.today()
+  fotoPerfil = models.ImageField(null=True, upload_to='img')
+  fotoBanner = models.ImageField(null=True, upload_to='img')
+  video = models.FileField(null=True, upload_to='video')
+  estado = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
+  fechaRegistro = models.DateField(default=datetime.now())
   fechaModificado = models.DateField(null=True, blank=True)
   fechaElimnado = models.DateField(null=True, blank=True)
   
+  # print(fotoPerfil)
+
   def nombre_completo(self):
     return "{} {}, {}".format(self.apellidoPaterno, self.apellidoMaterno, self.primerNombre)
   def __str__(self):
@@ -62,16 +70,18 @@ class Empleado(models.Model):
 
 class Oferta(models.Model):
   
-  # idOferta = models.AutoField(primary_key=True)
   empleado = models.ForeignKey(Empleado, null=True, blank=True, on_delete=models.CASCADE)
   fechaOferta = models.DateField()
   horaInicio = models.TimeField()
   horaFin = models.TimeField()
   costo = models.FloatField()
   estadoOferta = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
-  fechaRegistro = date.today()
+  estado = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
+  owner = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+  fechaRegistro = models.DateField(default=datetime.now())
   fechaModificado = models.DateField(null=True, blank=True)
   fechaElimnado = models.DateField(null=True, blank=True)
+  init_point = models.CharField(max_length=250, null=True)
 
   def nombre_completo(self):
     return "{} {}, {}".format(self.empleado.apellidoMaterno, self.empleado.apellidoPaterno, self.horaInicio)
@@ -81,11 +91,11 @@ class Oferta(models.Model):
         verbose_name_plural = "Ofertas"
 
 class Carrito(models.Model):
-  idCarrito = models.AutoField(primary_key=True)
-  # cliente = models.ForeignKey(Cliente, null=True, blank=True, on_delete=models.CASCADE)
+  
+  cliente = models.ForeignKey(Cliente, null=True, blank=True, on_delete=models.CASCADE)
   estadoCarrito = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
   estado = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
-  fechaRegistro = date.today()
+  fechaRegistro = models.DateField(default=datetime.now())
   fechaModificado = models.DateField(null=True, blank=True)
   fechaElimnado = models.DateField(null=True, blank=True)
   ofertas = models.ManyToManyField(Oferta)
