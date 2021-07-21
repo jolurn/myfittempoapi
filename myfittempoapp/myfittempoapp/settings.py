@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-84a9@6w@(ho3sf3&2!n#p0waqm9*pt4qlwkbrah!8zku_ejnw0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['7a3d4de47793.ngrok.io']
+ALLOWED_HOSTS = ['f9fd16cbd564.ngrok.io']
 
 import pymysql
 
@@ -112,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+AUTH_USER_MODEL = 'myfittempoapi.User'
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -140,9 +140,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/img/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'img')
 
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication']
+        'rest_framework_simplejwt.authentication.JWTAuthentication']
 }
 
 SECURE_REFERRER_POLICY = "no-referrer"

@@ -15,25 +15,32 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from myfittempoapi.views import hello_world,login
-from myfittempoapi.viewsets import ClienteViewset, EmpleadoViewset, OfertaViewset,CarritoViewset,TokenizeViewset,MercadopagoViewset
+from myfittempoapi.views import LoginAPI
+from myfittempoapi.viewsets import ClienteViewset, EmpleadoViewset, OfertaViewset,CarritoViewset,MercadopagoViewset,UsuarioViewset,EmpleadoUsuarioViewset
 from django.conf import settings
+from myfittempoapi.controllers.empleado_imagen_controller import EmpleadoImagenController
 from django.conf.urls.static import static
 
+
 urlpatterns = [
-    path('login',login),
+    path('login',LoginAPI.as_view()),
     path('admin/', admin.site.urls),
+    path('empleado/imagen/upload',EmpleadoImagenController.as_view()),
+    path('user', UsuarioViewset.as_view({'get':'listar','post':'create'})),    
+    path('user_cliente', UsuarioViewset.as_view({'get':'listar_usuario_activo','post':'create_usu_cliente'})),
     path('mercadopago', MercadopagoViewset.as_view({'post':'create'})),
     path('clientes',ClienteViewset.as_view({'get':'listar','post':'create'})),
     path('cliente/<id>',ClienteViewset.as_view({'get':'retrieve','put':'update'})),
     path('empleados',EmpleadoViewset.as_view({'get':'listar','post':'create'})),
     path('empleado/<id>',EmpleadoViewset.as_view({'get':'retrieve','put':'update'})),
-    path('oferta',OfertaViewset.as_view({'get':'listar','post':'create'})),
-    path('ofertas_empleado',OfertaViewset.as_view({'get':'listar_oferta_por_trabajador'})),
+    path('usu_empleado/<id>',EmpleadoUsuarioViewset.as_view({'get':'listar_empleado_id_usuario'})),
+    path('oferta',OfertaViewset.as_view({'get':'listar_activos','post':'create'})),
+    path('ofertas_empleado/<id>',OfertaViewset.as_view({'get':'listar_oferta_por_trabajador','put':'delete'})),
+    path('oferta_one/<id>',OfertaViewset.as_view({'get':'retrieve'})),
     path('oferta/<id>',OfertaViewset.as_view({'get':'retrieve','put':'update'})),
     path('carritos',CarritoViewset.as_view({'get':'listar','post':'create'})),
     path('carrito/<id>',CarritoViewset.as_view({'get':'retrieve'})),
-    path('tokenize',TokenizeViewset.as_view({'post':'get_token'}))
+    # path('tokenize',TokenizeViewset.as_view({'post':'get_token'}))
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
