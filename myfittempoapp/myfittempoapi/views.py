@@ -12,7 +12,7 @@ class LoginAPI(APIView):
     def post(self, request):
         login_data = request.data        
         email = login_data["correo"]
-        user = User.objects.filter(email__exact=email).first()        
+        user = User.objects.filter(email__exact=email,usuario_activo=1).first()
         password = login_data.get("password")
         user_authenticated = authenticate(username=user.username, password=password)
         if user_authenticated != None:

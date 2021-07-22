@@ -1,3 +1,6 @@
+from myfittempoapi.serializer import UsuarioUpdateSerializer
+from myfittempoapi.serializer import EmpleadoDeleteSerializer
+from myfittempoapi.serializer import UsuarioDeleteSerializer
 from myfittempoapi.serializer import UserClienteSerializer
 from myfittempoapi.serializer import ListarEmpleadoSerializer
 from os import pardir
@@ -74,7 +77,7 @@ class UsuarioViewset(viewsets.ViewSet):
 
   def listar(self,request):
   
-    queryset = User.objects.all()
+    queryset = User.objects.filter(usuario_activo=1)
     serializer = UserEmpleadoSerializer(queryset, many=True)
     return Response(serializer.data)
 
@@ -83,7 +86,33 @@ class UsuarioViewset(viewsets.ViewSet):
     queryset = User.objects.filter(usu_tipo='colaborador')
     serializer = UserEmpleadoSerializer(queryset, many=True)
     return Response(serializer.data)
-  
+
+  def delete(self,request,id):
+    queryset = User.objects.get(pk=id)
+    data = request.data
+    serializer = UsuarioDeleteSerializer(data=data)
+    if serializer.is_valid():
+      # print(queryset)
+      serializer.delete(queryset, serializer.validated_data)
+      return Response({"status": "ok"})
+    else:
+      return(Response({
+        "errors": serializer.errors
+      }))
+
+  def update(self,request,id):
+    queryset = User.objects.get(pk=id)
+    data = request.data
+    serializer = UsuarioUpdateSerializer(data=data)
+    if serializer.is_valid():
+     
+      serializer.update(queryset, serializer.validated_data)
+      return Response({"status": "ok"})
+    else:
+      return(Response({
+        "errors": serializer.errors
+      }))
+
 class ClienteViewset(viewsets.ViewSet):
  
   def update(self,request,id):
@@ -133,6 +162,19 @@ class EmpleadoUsuarioViewset(viewsets.ViewSet):
     serializer = EmpleadoSerializer(queryset, many=True)
     return Response(serializer.data)
 
+  def delete(self,request,id):
+    queryset = Empleado.objects.get(pk=id)
+    data = request.data
+    serializer = EmpleadoDeleteSerializer(data=data)
+    if serializer.is_valid():
+      # print(queryset)
+      serializer.delete(queryset, serializer.validated_data)
+      return Response({"status": "ok"})
+    else:
+      return(Response({
+        "errors": serializer.errors
+      }))
+    
 class EmpleadoViewset(viewsets.ViewSet):
 
   def update(self,request,id):
@@ -141,7 +183,8 @@ class EmpleadoViewset(viewsets.ViewSet):
     serializer = EmpleadoUpdateSerializer(data=data)
     if serializer.is_valid():
       serializer.update(queryset, serializer.validated_data)
-      return Response({"status": "ok"})
+      return Response({"status": serializer.is_valid(),
+        "content": serializer.data})
     else:
       return(Response({
         "errors": serializer.errors
@@ -149,7 +192,7 @@ class EmpleadoViewset(viewsets.ViewSet):
 
   def listar(self,request):
     
-    queryset = Empleado.objects.all()
+    queryset = Empleado.objects.filter(estado="A")
     serializer = ListarEmpleadoSerializer(queryset, many=True)
     return Response(serializer.data)
   
@@ -222,13 +265,13 @@ class OfertaViewset(viewsets.ViewSet):
   def listar_oferta_por_trabajador(self, request,id):    
     user = User.objects.get(pk=id)
     empleado = Empleado.objects.get(usuarios=user.id)   
-    queryset = Oferta.objects.filter(empleado=empleado, estadoOferta="A")
+    queryset = Oferta.objects.filter(empleado=empleado, estado="A")
     serializer = OfertaUpdateSerializer(queryset, many=True)
     return Response(serializer.data)
  
   def listar_activos(self,request):
-    queryset = Oferta.objects.filter(estadoOferta="A")
-    serializer = OfertaSerializer(queryset, many=True)
+    queryset = Oferta.objects.filter(estado="A")
+    serializer = OfertaUpdateSerializer(queryset, many=True)#necesito el id en el serialaizer por eso uso OfertaUpdateSerializer
     return Response(serializer.data)
 
   def listar(self,request):  

@@ -5,7 +5,8 @@ from datetime import datetime
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-servidor = "http://f9fd16cbd564.ngrok.io"
+servidor = "http://64898db57530.ngrok.io"
+updatefile = "http://64898db57530.ngrok"
 
 class CustomObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -52,6 +53,51 @@ class UserSerializer(serializers.Serializer):
     usuario.save()
     return usuario
 
+class UsuarioDeleteSerializer(serializers.Serializer):
+  
+  def delete(self,queryset,validated_data):
+    usuario = queryset
+
+    usuario.usuario_activo = 0
+    usuario.fechaElimnado = datetime.now()
+    
+    usuario.save()
+    return usuario
+
+class UsuarioUpdateSerializer(serializers.Serializer):
+
+  id = serializers.IntegerField()
+  username = serializers.CharField(max_length=100)
+  password = serializers.CharField(max_length=300)
+  primerNombre = serializers.CharField(max_length=50)
+  segundoNombre = serializers.CharField(max_length=50, required=False, allow_blank=True)
+  apellidoPaterno = serializers.CharField(max_length=100)
+  apellidoMaterno = serializers.CharField(max_length=100)
+  dni = serializers.IntegerField()
+  celular = serializers.IntegerField()
+  email = serializers.CharField(max_length=100)
+  direccion = serializers.CharField(max_length=100)
+  usu_tipo = serializers.CharField(max_length=50)
+  
+  def update(self,queryset,validated_data):
+    usuario = queryset
+    
+    usuario.username = validated_data['username']
+    usuario.set_password(validated_data['password'])
+    usuario.primerNombre = validated_data['primerNombre']
+    usuario.segundoNombre = validated_data['segundoNombre']
+    usuario.apellidoPaterno = validated_data['apellidoPaterno']
+    usuario.apellidoMaterno = validated_data['apellidoMaterno']
+    usuario.dni = validated_data['dni']
+    usuario.celular = validated_data['celular']
+    usuario.email = validated_data['email']
+    usuario.direccion = validated_data['direccion']
+    usuario.usu_tipo = validated_data['usu_tipo'] 
+    usuario.fechaModificado = datetime.now()
+        
+    usuario.save()
+    return usuario
+
 class UserClienteSerializer(serializers.Serializer):
   
   username = serializers.CharField(max_length=100)
@@ -83,6 +129,7 @@ class UserClienteSerializer(serializers.Serializer):
 
     usuario.save()
     return usuario
+
 class UserEmpleadoSerializer(serializers.Serializer):
   
   id = serializers.IntegerField()
@@ -190,7 +237,6 @@ class EmpleadoSerializer(serializers.Serializer):
   def create(self,validated_data):
     empleado = Empleado()
 
-    # empleado.usuarios = validated_data['usuarios']
     empleado.distrito = validated_data['distrito']
     empleado.profesion = validated_data['profesion']
     empleado.descripcion = validated_data['descripcion']
@@ -239,48 +285,58 @@ class ListarEmpleadoSerializer(serializers.Serializer):
     empleado.save()
     return empleado
 
+class EmpleadoDeleteSerializer(serializers.Serializer):
+  
+  def delete(self,queryset,validated_data):
+    empleado = queryset
+
+    empleado.estado = "I"
+    empleado.fechaElimnado = datetime.now()
+    
+    empleado.save()
+    return empleado
+
 class EmpleadoUpdateSerializer(serializers.Serializer):
 
   id = serializers.IntegerField()
-  primerNombre = serializers.CharField(max_length=50)
-  segundoNombre = serializers.CharField(max_length=50, required=False, allow_blank=True)
-  apellidoPaterno = serializers.CharField(max_length=100)
-  apellidoMaterno = serializers.CharField(max_length=100)
-  dni = serializers.IntegerField()
-  celular = serializers.IntegerField()
-  correo = serializers.CharField(max_length=100)
-  password = serializers.CharField(max_length=100)
-  direccion = serializers.CharField(max_length=100)
+  usuarios = UserEmpleadoSerializer()
   distrito = serializers.CharField(max_length=100)
   profesion = serializers.CharField(max_length=50)
   descripcion = serializers.CharField(max_length=200)
-  fotoPerfil = serializers.ImageField()
-  fotoBanner = serializers.ImageField()
-  video = serializers.FileField()
-  fechaRegistro = serializers.DateField(required=False)
-  fechaModificado = serializers.DateField(required=False)
-  fechaElimnado = serializers.DateField(required=False)
+  fotoPerfil = serializers.CharField(max_length=200)
+  fotoBanner = serializers.CharField(max_length=200)
+  video = serializers.CharField(max_length=200)
 
   def update(self, queryset, validated_data):
 
     empleado = queryset
-    empleado.primerNombre = validated_data['primerNombre']
-    empleado.segundoNombre = validated_data['segundoNombre']
-    empleado.apellidoPaterno = validated_data['apellidoPaterno']
-    empleado.apellidoMaterno = validated_data['apellidoMaterno']
-    empleado.dni = validated_data['dni']
-    empleado.celular = validated_data['celular']
-    empleado.correo = validated_data['correo']
-    empleado.password = validated_data['password']
-    empleado.direccion = validated_data['direccion']
+
     empleado.distrito = validated_data['distrito']
     empleado.profesion = validated_data['profesion']
     empleado.descripcion = validated_data['descripcion']
-    empleado.fotoPerfil = validated_data['fotoPerfil']
-    empleado.fotoBanner = validated_data['fotoBanner']
-    empleado.video = validated_data['video']
-    empleado.fechaModificado = datetime.now()
+    foto = validated_data['fotoPerfil'].split('.io/img/')
 
+    if(foto[0] == updatefile):
+      empleado.fotoPerfil = foto[1]
+    else:
+      empleado.fotoPerfil = validated_data['fotoPerfil']
+
+    banner = validated_data['fotoBanner'].split('.io/img/')
+    if(banner[0] == updatefile):
+      empleado.fotoBanner = banner[1]
+    else:
+      empleado.fotoBanner = validated_data['fotoBanner']
+
+    vdeo = validated_data['video'].split('.io/img/')
+    if(vdeo[0] == updatefile):
+      empleado.video = vdeo[1]
+    else:
+      empleado.video = validated_data['video']    
+    
+    usuarios = User.objects.filter(pk=validated_data['usuarios']['id']).last()
+    usuarios.fechaModificado = datetime.now()
+
+    empleado.usuarios = usuarios  
     empleado.save()
     return empleado
     
@@ -336,7 +392,7 @@ class OfertaDeleteSerializer(serializers.Serializer):
   def delete(self,queryset,validated_data):
     oferta = queryset
 
-    oferta.estadoOferta = "I"
+    oferta.estado = "I"
     oferta.fechaElimnado = datetime.now()
     
     oferta.save()
