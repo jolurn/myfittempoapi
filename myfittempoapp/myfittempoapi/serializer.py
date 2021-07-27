@@ -1,12 +1,13 @@
 # from typing_extensions import Required
+from myfittempoapi.models import CarritoOferta
 from rest_framework import serializers
 from myfittempoapi.models import Cliente,Empleado,Oferta,Carrito,User
 from datetime import datetime
-
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-servidor = "http://64898db57530.ngrok.io"
-updatefile = "http://64898db57530.ngrok"
+
+servidor = "http://d65285feadd4.ngrok.io"
+updatefile = "http://d65285feadd4.ngrok"
 
 class CustomObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -99,7 +100,8 @@ class UsuarioUpdateSerializer(serializers.Serializer):
     return usuario
 
 class UserClienteSerializer(serializers.Serializer):
-  
+
+  # no agregar id por que se esta usando
   username = serializers.CharField(max_length=100)
   password = serializers.CharField(max_length=300)
   primerNombre = serializers.CharField(max_length=50)
@@ -129,6 +131,7 @@ class UserClienteSerializer(serializers.Serializer):
 
     usuario.save()
     return usuario
+
 
 class UserEmpleadoSerializer(serializers.Serializer):
   
@@ -163,59 +166,89 @@ class UserEmpleadoSerializer(serializers.Serializer):
     usuario.save()
     return usuario
 
-class ClienteSerializer(serializers.Serializer):
+class ListarClienteSerializer(serializers.Serializer):
+
+  id = serializers.IntegerField()
+  usuarios = UserEmpleadoSerializer()
+  fechaNacimiento = serializers.DateField()
+  distrito = serializers.CharField(max_length=100)
+  fotoCliente = serializers.SerializerMethodField('get_fotoPerfil_path')
   
-  usuarios = UserClienteSerializer()  
-  fechaRegistro = serializers.DateField(required=False)
-  fechaModificado = serializers.DateField(required=False)
-  fechaElimnado = serializers.DateField(required=False)
+
+  def get_fotoPerfil_path(self, obj):
+    return f"{servidor}/img/{obj.fotoCliente}"
+
+class ClienteSerializer(serializers.Serializer):
+  id = serializers.IntegerField()#usandolo en getClientes
+  usuarios = UserEmpleadoSerializer()
+  fechaNacimiento = serializers.DateField()
+  distrito = serializers.CharField(max_length=100)
+  fotoCliente = serializers.CharField(max_length=200)
+  # fechaRegistro = serializers.DateField(required=False)
+  # fechaModificado = serializers.DateField(required=False)
+  # fechaElimnado = serializers.DateField(required=False)
+
+class ClienteSaveSerializer(serializers.Serializer):
+ 
+  usuarios = UserEmpleadoSerializer()
+  fechaNacimiento = serializers.DateField()
+  distrito = serializers.CharField(max_length=100)
+  fotoCliente = serializers.CharField(max_length=200)
+  # fechaRegistro = serializers.DateField(required=False)
+  # fechaModificado = serializers.DateField(required=False)
+  # fechaElimnado = serializers.DateField(required=False)
 
 
   def create(self, validated_data):
     cliente = Cliente()
-        
-    cliente.primerNombre = validated_data['primerNombre']
-    cliente.segundoNombre = validated_data['segundoNombre']
-    cliente.apellidoPaterno = validated_data['apellidoPaterno']
-    cliente.apellidoMaterno = validated_data['apellidoMaterno']
-    cliente.dni = validated_data['dni']
-    cliente.celular = validated_data['celular']
-    cliente.correo = validated_data['correo']   
-    cliente.direccion = validated_data['direccion']
+    
+    cliente.fechaNacimiento = validated_data['fechaNacimiento']
+    cliente.distrito = validated_data['distrito']
+    cliente.fotoCliente = validated_data['fotoCliente']
+    usuarios = User.objects.filter(pk=validated_data['usuarios']['id']).last()
+    
+    cliente.usuarios = usuarios  
 
+    cliente.save()
+    return cliente
+ 
+class ClienteDeleteSerializer(serializers.Serializer):
+  
+  def delete(self,queryset,validated_data):
+    cliente = queryset
+
+    cliente.estado = "I"
+    cliente.fechaElimnado = datetime.now()
+    
     cliente.save()
     return cliente
 
 class ClienteUpdateSerializer(serializers.Serializer):
 
   id = serializers.IntegerField()
-  usuarios = UserClienteSerializer()
-  # primerNombre = serializers.CharField(max_length=50)
-  # segundoNombre = serializers.CharField(max_length=50, required=False, allow_blank=True)
-  # apellidoPaterno = serializers.CharField(max_length=100)
-  # apellidoMaterno = serializers.CharField(max_length=100)
-  # dni = serializers.IntegerField()
-  # celular = serializers.IntegerField()
-  # correo = serializers.CharField(max_length=100)
-  # password = serializers.CharField(max_length=100)
-  # direccion = serializers.CharField(max_length=100)
-  fechaRegistro = serializers.DateField(required=False)
-  fechaModificado = serializers.DateField(required=False)
-  fechaElimnado = serializers.DateField(required=False)
+  usuarios = UserEmpleadoSerializer()
+  fechaNacimiento = serializers.DateField()
+  distrito = serializers.CharField(max_length=100)
+  fotoCliente = serializers.CharField(max_length=200)
 
   def update(self, queryset, validated_data):
     
     cliente = queryset
-    cliente.primerNombre = validated_data['primerNombre']
-    cliente.segundoNombre = validated_data['segundoNombre']
-    cliente.apellidoPaterno = validated_data['apellidoPaterno']
-    cliente.apellidoMaterno = validated_data['apellidoMaterno']
-    cliente.dni = validated_data['dni']
-    cliente.celular = validated_data['celular']
-    cliente.correo = validated_data['correo']
-    cliente.password = validated_data['password']
-    cliente.direccion = validated_data['direccion']
-    cliente.fechaModificado = datetime.now()
+    
+    cliente.fechaNacimiento = validated_data['fechaNacimiento']    
+    cliente.distrito = validated_data['distrito']
+    foto = validated_data['fotoCliente'].split('.io/img/')
+
+    if(foto[0] == updatefile):
+      cliente.fotoCliente = foto[1]
+    else:
+      cliente.fotoCliente = validated_data['fotoCliente']
+
+    usuarios = User.objects.filter(pk=validated_data['usuarios']['id']).last()
+    usuarios.fechaModificado = datetime.now()
+
+    cliente.usuarios = usuarios  
+    
 
     cliente.save()
     return cliente
@@ -430,7 +463,7 @@ class OfertaUpdateSerializer(serializers.Serializer):
   
 class CarritoSerializer(serializers.Serializer):
   
-  id = serializers.IntegerField()
+  # id = serializers.IntegerField()
   cliente = ClienteSerializer()
   estadoCarrito = serializers.CharField(max_length=1)
   estado = serializers.CharField(max_length=1)
@@ -441,35 +474,25 @@ class CarritoSerializer(serializers.Serializer):
  
 class CarritoSaveSerializer(serializers.Serializer):
 
-  id = serializers.IntegerField()
-  cliente = serializers.ReadOnlyField(source='Cliente')
-  estadoCarrito = serializers.CharField(max_length=1)
-  estado = serializers.CharField(max_length=1)
-  fechaRegistro = serializers.DateField(required=False)
-  fechaModificado = serializers.DateField(required=False)
-  fechaElimnado = serializers.DateField(required=False)
+  cliente = ClienteSerializer()  
   ofertas = serializers.ListField()
 
   def create(self,validated_data):
     carrito = Carrito()
+        
+    cliente = Cliente.objects.filter(pk=validated_data['cliente']['id']).last()
     
-    carrito.estadoCarrito = validated_data['estadoCarrito']
-    carrito.estado = validated_data['estado']
+    carrito.cliente = cliente  
     
-    for item in validated_data['cliente']:
-      cliente = Cliente.objects.filter(pk=item.id).last()
-      if cliente == None:
-        cliente = Cliente()
-        cliente.id=item.id
-        cliente.save()
-      Carrito.cliente.add(cliente)
-
     for item in validated_data['ofertas']:
-      oferta = Oferta.objects.filter(pk=item.id).last()
-      if oferta == None:
-        oferta = Oferta()
-        oferta.id=item.id
-        oferta.save()      
+      
+      oferta = Oferta.objects.filter(pk=item["id"]).last()
+      print(oferta.id)
+      # if oferta == None:
+      #   oferta = Oferta()
+      #   oferta.id=item["id"]
+      #   oferta.save()
+      
       carrito.ofertas.add(oferta)
     
     carrito.save()

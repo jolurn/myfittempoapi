@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-84a9@6w@(ho3sf3&2!n#p0waqm9*pt4qlwkbrah!8zku_ejnw0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['64898db57530.ngrok.io']
+ALLOWED_HOSTS = ['d65285feadd4.ngrok.io']
 
 import pymysql
 
@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'myfittempoapi',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders'
+    'corsheaders',
+    # 'cloudinary'
 ]
 
 MIDDLEWARE = [
@@ -140,7 +141,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/img/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'img')
 
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': 'djgakl3sq',
+#     'API_KEY': '365477298225516',
+#     'API_SECRET': 'jH0pNEdml1EjSqeeJZzXCA9S8LE'
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

@@ -1,3 +1,7 @@
+
+from myfittempoapi.serializer import ClienteDeleteSerializer
+from myfittempoapi.serializer import ListarClienteSerializer
+from myfittempoapi.serializer import ClienteSaveSerializer
 from myfittempoapi.serializer import UsuarioUpdateSerializer
 from myfittempoapi.serializer import EmpleadoDeleteSerializer
 from myfittempoapi.serializer import UsuarioDeleteSerializer
@@ -75,15 +79,26 @@ class UsuarioViewset(viewsets.ViewSet):
         "errors": serializer.errors
       }))
 
+  def listar_one(self, request,id):
+    user = User.objects.filter(pk=id)
+    serializer = UserEmpleadoSerializer(user, many=True)
+    return Response(serializer.data)
+
   def listar(self,request):
   
     queryset = User.objects.filter(usuario_activo=1)
     serializer = UserEmpleadoSerializer(queryset, many=True)
     return Response(serializer.data)
 
-  def listar_usuario_activo(self,request):
+  def listar_usuario_empleado_activo(self,request):
   
     queryset = User.objects.filter(usu_tipo='colaborador')
+    serializer = UserEmpleadoSerializer(queryset, many=True)
+    return Response(serializer.data)
+
+  def listar_usuario_cliente_activo(self,request):
+  
+    queryset = User.objects.filter(usu_tipo='cliente')
     serializer = UserEmpleadoSerializer(queryset, many=True)
     return Response(serializer.data)
 
@@ -121,17 +136,16 @@ class ClienteViewset(viewsets.ViewSet):
     serializer = ClienteUpdateSerializer(data=data)
     if serializer.is_valid():
       serializer.update(queryset, serializer.validated_data)
-      return Response({"status": "ok"})
+      return Response({"status": serializer.is_valid(),
+        "content": serializer.data })
     else:
       return(Response({
         "errors": serializer.errors
       }))
   
-  def listar(self,request):
-    #  user = request.user
-    # queryset = Cliente.objects.filter(owner=user)
-    queryset = Cliente.objects.all()
-    serializer = ClienteSerializer(queryset, many=True)
+  def listar(self,request):    
+    queryset = Cliente.objects.filter(estado="A")
+    serializer = ListarClienteSerializer(queryset, many=True)
     return Response(serializer.data)
 
   def retrieve(self,request, id):
@@ -141,17 +155,31 @@ class ClienteViewset(viewsets.ViewSet):
 
   def create(self, request):
     data = request.data
-    serializer = ClienteSerializer(data=data)
+    serializer = ClienteSaveSerializer(data=data)
     #ahora toca validar / is_valid devuelve un binario 
     if serializer.is_valid():
       serializer.save()      
-      reponse = {
-        "status": serializer.is_valid()        
+      reponse = {  
+        "status": serializer.is_valid(),
+        "content": serializer.data 
       }
       return Response(reponse)
     else:
       return(Response({
         "error": serializer.errors
+      }))
+
+  def delete(self,request,id):
+    queryset = Cliente.objects.get(pk=id)
+    data = request.data
+    serializer = ClienteDeleteSerializer(data=data)
+    if serializer.is_valid():
+      # print(queryset)
+      serializer.delete(queryset, serializer.validated_data)
+      return Response({"status": "ok"})
+    else:
+      return(Response({
+        "errors": serializer.errors
       }))
 
 class EmpleadoUsuarioViewset(viewsets.ViewSet):
@@ -217,22 +245,7 @@ class EmpleadoViewset(viewsets.ViewSet):
       return(Response({
         "errors": serializer.errors
       }))
-
-  # def create(self, request):
-  #   data = request.data
-  #   serializer = EmpleadoSerializer(data=data)
-  #   #ahora toca validar / is_valid devuelve un binario 
-  #   if serializer.is_valid():      
-  #     serializer.save()#va llamar al metodo create del zerializer
-  #     reponse = {
-  #       "status": serializer.is_valid()
-  #     }
-  #     return Response(reponse)
-  #   else:
-  #     return(Response({
-  #       "errors": serializer.errors
-  #     }))
-
+  
 class OfertaViewset(viewsets.ViewSet):
   
   

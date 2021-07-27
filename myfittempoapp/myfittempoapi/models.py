@@ -36,7 +36,10 @@ class User(AbstractUser):
 
 class Cliente(models.Model):
   
-  usuarios = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)  
+  usuarios = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+  fechaNacimiento = models.DateField()
+  distrito = models.CharField(max_length=100,null=True, blank=True)
+  fotoCliente = models.ImageField(null=True, upload_to='img')
   estado = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
   fechaRegistro = models.DateField(default=datetime.now())
   fechaModificado = models.DateField(null=True, blank=True)
@@ -64,8 +67,7 @@ class Empleado(models.Model):
   fechaModificado = models.DateField(null=True, blank=True)
   fechaElimnado = models.DateField(null=True, blank=True)
   
-  # print(fotoPerfil)
-
+  
   def nombre_completo(self):
     return "{} {}, {} {}".format(self.usuarios.apellidoPaterno, self.usuarios.apellidoMaterno, self.usuarios.primerNombre, self.usuarios.segundoNombre)
   def __str__(self):
@@ -88,7 +90,7 @@ class Oferta(models.Model):
   
 
   def nombre_completo(self):
-    return "{} {}, {}".format(self.empleado.usuarios.apellidoMaterno, self.empleado.usuarios.apellidoPaterno, self.horaInicio)
+    return "{} {}, {}".format(self.empleado.usuarios.apellidoPaterno, self.empleado.usuarios.apellidoMaterno, self.horaInicio)
   def __str__(self):
         return self.nombre_completo()
   class Meta:
@@ -97,12 +99,22 @@ class Oferta(models.Model):
 class Carrito(models.Model):
   
   cliente = models.ForeignKey(Cliente, null=True, blank=True, on_delete=models.CASCADE)
-  estadoCarrito = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
+  estadoCarrito = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='I')
+  estado = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
+  ofertas = models.ManyToManyField(Oferta, through='CarritoOferta')
+  fechaRegistro = models.DateField(default=datetime.now())
+  fechaModificado = models.DateField(null=True, blank=True)
+  fechaElimnado = models.DateField(null=True, blank=True)
+
+  class Meta:
+        verbose_name_plural = "Carritos"
+
+class CarritoOferta(models.Model):
+  
+  carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)
+  oferta = models.ForeignKey(Oferta, on_delete=models.CASCADE)
+  quantity = models.IntegerField(default=1)
   estado = models.CharField(max_length=1, choices=ESTADO_OFERTA, default='A')
   fechaRegistro = models.DateField(default=datetime.now())
   fechaModificado = models.DateField(null=True, blank=True)
   fechaElimnado = models.DateField(null=True, blank=True)
-  ofertas = models.ManyToManyField(Oferta)
-
-  class Meta:
-        verbose_name_plural = "Carritos"

@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from myfittempoapi.controllers.empleado_imagen_controller import ClienteImagenControllerPerfil
 from myfittempoapi.controllers.empleado_imagen_controller import EmpleadoImagenControllerBannerVideo
 from myfittempoapi.controllers.empleado_imagen_controller import EmpleadoImagenControllerPerfilBanner, EmpleadoImagenControllerPerfilVideo
 from myfittempoapi.controllers.empleado_imagen_controller import EmpleadoImagenControllerVideo
@@ -37,13 +38,17 @@ urlpatterns = [
     path('empleado/imagen/video',EmpleadoImagenControllerVideo.as_view()),
     path('empleado/imagen/banner',EmpleadoImagenControllerBanner.as_view()),
     path('empleado/imagen/perfil',EmpleadoImagenControllerPerfil.as_view()),
+    path('cliente/imagen/perfil',ClienteImagenControllerPerfil.as_view()),
     path('user', UsuarioViewset.as_view({'get':'listar','post':'create'})),  
     path('user/<id>', UsuarioViewset.as_view({'put':'update'})),  
-    path('user_cliente', UsuarioViewset.as_view({'get':'listar_usuario_activo','post':'create_usu_cliente'})),
+    path('usuario/<id>', UsuarioViewset.as_view({'put':'listar_one'})),  
+    path('user_combocliente', UsuarioViewset.as_view({'get':'listar_usuario_cliente_activo'})),
+    path('user_cliente', UsuarioViewset.as_view({'get':'listar_usuario_empleado_activo','post':'create_usu_cliente'})),
     path('user_cliente/<id>', UsuarioViewset.as_view({'put':'delete'})),
     path('mercadopago', MercadopagoViewset.as_view({'post':'create'})),
     path('clientes',ClienteViewset.as_view({'get':'listar','post':'create'})),
     path('cliente/<id>',ClienteViewset.as_view({'get':'retrieve','put':'update'})),
+    path('clientedelete/<id>',ClienteViewset.as_view({'put':'delete'})),
     path('empleados',EmpleadoViewset.as_view({'get':'listar','post':'create'})),
     path('empleado/<id>',EmpleadoViewset.as_view({'get':'retrieve','put':'update'})),
     path('usu_empleado/<id>',EmpleadoUsuarioViewset.as_view({'get':'listar_empleado_id_usuario','put':'delete'})),
